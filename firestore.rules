@@ -1,0 +1,52 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: Check if document owner matches authenticated user
+    function isOwner(resourceData) {
+      return resourceData.uid == request.auth.uid;
+    }
+
+    // Helper: Ensure the owner field is set to the authenticated user ID on writes
+    function isSettingOwnUid(requestData) {
+      return requestData.uid == request.auth.uid;
+    }
+
+    // Rules for the animals collection
+    // Read is open to any signed-in user so the Global Registry (browsing
+    // everyone's birds) works. Writes remain restricted to the owner.
+    match /animals/{animalId} {
+      allow read: if isAuthenticated();
+      allow delete: if isAuthenticated() && isOwner(resource.data);
+      allow create: if isAuthenticated() && isSettingOwnUid(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data) && isSettingOwnUid(request.resource.data);
+    }
+
+    // Rules for the incubation_batches collection
+    match /incubation_batches/{batchId} {
+      allow read, delete: if isAuthenticated() && isOwner(resource.data);
+      allow create: if isAuthenticated() && isSettingOwnUid(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data) && isSettingOwnUid(request.resource.data);
+    }
+
+    // Rules for daily task-completion tracking (one doc per user per day,
+    // id format "{uid}_{yyyy-MM-dd}"). A user may only touch their own doc.
+    match /task_completions/{docId} {
+      allow read: if isAuthenticated() && docId.matches(request.auth.uid + '_.*');
+      allow create, update: if isAuthenticated() &&
+        docId.matches(request.auth.uid + '_.*') &&
+        isSettingOwnUid(request.resource.data);
+    }
+
+    // Default deny rule for any other collection
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
