@@ -350,7 +350,7 @@ class _EncounterScannerScreenState extends State<EncounterScannerScreen> with Si
           if (_isLoading)
             Positioned.fill(
               child: Container(
-                color: Colors.black70,
+                color: Colors.black54,
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
