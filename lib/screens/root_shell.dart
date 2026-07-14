@@ -11,6 +11,7 @@ import 'collection_screen.dart';
 import 'dashboard_screen.dart';
 import 'daily_tasks_screen.dart';
 import 'global_registry_screen.dart';
+import 'encounter_scanner_screen.dart';
 
 class RootShell extends StatefulWidget {
   const RootShell({super.key});
@@ -45,12 +46,22 @@ class _RootShellState extends State<RootShell> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
-        onTap: _goTo,
+        onTap: (index) {
+          if (index == 4) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const EncounterScannerScreen()),
+            );
+          } else {
+            _goTo(index);
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.style_rounded), label: 'Collection'),
           BottomNavigationBarItem(icon: Icon(Icons.checklist_rounded), label: 'Tasks'),
           BottomNavigationBarItem(icon: Icon(Icons.public_rounded), label: 'Registry'),
+          BottomNavigationBarItem(icon: Icon(Icons.camera_alt_rounded), label: 'Scanner'),
         ],
       ),
     );
